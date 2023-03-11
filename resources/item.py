@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 blp = Blueprint("Items", __name__, description="Operations on items")
 
 
-@blp.route("/item/<string:item_id>")
+@blp.route("/item/<int:item_id>")
 class Item(MethodView):
     @blp.response(200, ItemSchema)
     def get(self, item_id):
