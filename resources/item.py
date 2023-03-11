@@ -1,11 +1,16 @@
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from flask_jwt_extended import jwt_required
 from schemas import ItemSchema, ItemUpdateSchema, ResponseSchema
 from models import ItemModel
 from db import db
 from sqlalchemy.exc import SQLAlchemyError
 blp = Blueprint("Items", __name__, description="Operations on items")
 
+@blp.before_request
+@jwt_required()
+def authenticate():
+    pass
 
 @blp.route("/item/<int:item_id>")
 class Item(MethodView):
@@ -28,7 +33,7 @@ class Item(MethodView):
     @blp.response(200, ResponseSchema)
     def put(self, item_data, item_id):
         item = ItemModel.query.get(item_id)
-        message = "" 
+        message = ""
         if item:
             item.price = item_data["price"]
             item.name = item_data["name"]
@@ -38,7 +43,7 @@ class Item(MethodView):
             message = "Item created"
         db.session.add(item)
         db.session.commit()
-        return {"message": message, "data": item}       
+        return {"message": message, "data": item}
         # try:
         #     item = items[item_id]
         #     item |= item_data
