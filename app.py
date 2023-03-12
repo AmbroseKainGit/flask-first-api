@@ -10,6 +10,7 @@ from resources.tag import blp as TagBlueprint
 from resources.user import blp as UserBlueprint
 from blocklist import BLOCKLIST
 
+
 def create_app(db_url=None):
     app = Flask(__name__)
 
@@ -39,6 +40,17 @@ def create_app(db_url=None):
             jsonify(
                 {"description": "Token has been revoked.", "error": "token_revoked"}),
             401
+        )
+
+    @jwt.needs_fresh_token_loader
+    def token_not_fresh_callback(jwt_header, jwt_payload):
+        return (
+            jsonify(
+                {
+                    "description": "Token is not fresh.",
+                    "error": "fresh_token_required"
+                }
+            )
         )
 
     # Claims in JWT
