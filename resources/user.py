@@ -1,3 +1,4 @@
+from flask import current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from passlib.hash import pbkdf2_sha256
@@ -5,8 +6,9 @@ from flask_jwt_extended import create_access_token, create_refresh_token, get_jw
 from sqlalchemy.exc import IntegrityError
 from db import db
 from models import UserModel
-from blocklist import BLOCKLIST
+from redis_client import redis_client
 from schemas import UserSchema
+from datetime import timedelta
 blp = Blueprint("Users", __name__, description="Operations on Users")
 
 
@@ -53,7 +55,7 @@ class UserLogout(MethodView):
     @jwt_required()
     def post(self):
         jti = get_jwt()["jti"]
-        BLOCKLIST.add(jti)
+        redis_client.set(jti, '', ex=timedelta(hours=1))
         return {"message": "User logged out successfully."}
 
 
