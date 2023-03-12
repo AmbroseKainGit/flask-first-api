@@ -8,7 +8,7 @@ from resources.item import blp as ItemBlueprint
 from resources.store import blp as StoreBlueprint
 from resources.tag import blp as TagBlueprint
 from resources.user import blp as UserBlueprint
-
+from blocklist import BLOCKLIST
 
 def create_app(db_url=None):
     app = Flask(__name__)
@@ -26,13 +26,34 @@ def create_app(db_url=None):
     db.init_app(app)
     api = Api(app)
     app.config["JWT_SECRET_KEY"] = "248955838486057085944623901479057552838"
-    
+
     jwt = JWTManager(app)
-    
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_in_blocklist(jwt_header, jwt_payload):
+        return jwt_payload["jti"] in BLOCKLIST
+
+    @jwt.revoked_token_loader
+    def revoked_token_callback(jwt_header, jwt_payload):
+        return (
+            jsonify(
+                {"description": "Token has been revoked.", "error": "token_revoked"}),
+            401
+        )
+
+    # Claims in JWT
+    @jwt.additional_claims_loader
+    def add_claims_to_jwt(identity):
+        # Look in the database for the user and see whether the user is an admin or not
+        if identity == 1:
+            return {"is_admin": True}
+        return {"is_admin": False}
+
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
         return (
-            jsonify({"message": "The token has expired.", "error": "token_expired"}),
+            jsonify({"message": "The token has expired.",
+                    "error": "token_expired"}),
             401,
         )
 
