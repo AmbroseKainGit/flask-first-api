@@ -1,3 +1,5 @@
+import requests
+import os
 from flask import current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
@@ -10,6 +12,17 @@ from redis_client import redis_client
 from schemas import UserSchema
 from datetime import timedelta
 blp = Blueprint("Users", __name__, description="Operations on Users")
+
+
+def send_simple_message(to, subject, body):
+    domain = os.getenv("MAILGUN_DOMAIN")
+    return requests.post(
+        f"https://api.mailgun.net/v3/{domain}/messages",
+        auth=("api", os.getenv("MAILGUN_API_KEY")),
+        data={"from": f"Cristian Ceballos <mailgun@{domain}>",
+              "to": [to],
+              "subject": subject,
+              "text": body})
 
 
 @blp.route("/register")
@@ -49,6 +62,7 @@ class TokenRefresh(MethodView):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {"access_token": new_token}
+
 
 @blp.route("/logout")
 class UserLogout(MethodView):
