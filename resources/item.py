@@ -7,13 +7,15 @@ from db import db
 from sqlalchemy.exc import SQLAlchemyError
 blp = Blueprint("Items", __name__, description="Operations on items")
 
-@blp.before_request
-@jwt_required()
-def authenticate():
-    pass
+# @blp.before_request
+# @jwt_required()
+# def authenticate():
+#     pass
+
 
 @blp.route("/item/<int:item_id>")
 class Item(MethodView):
+    @jwt_required()
     @blp.response(200, ItemSchema)
     def get(self, item_id):
         try:
@@ -22,6 +24,7 @@ class Item(MethodView):
         except KeyError:
             abort(404, message="Item not found.")
 
+    @jwt_required()
     def delete(self, item_id):
         jwt = get_jwt()
         if not jwt.get("is_admin"):
@@ -32,6 +35,7 @@ class Item(MethodView):
         return {"message": "Item deleted"}
         # raise NotImplementedError("Deleting an item is not implemented.")
 
+    @jwt_required()
     @blp.arguments(ItemUpdateSchema)
     @blp.response(200, ResponseSchema)
     def put(self, item_data, item_id):
@@ -57,6 +61,7 @@ class Item(MethodView):
 
 @blp.route("/item")
 class ItemList(MethodView):
+    @jwt_required()
     @blp.response(200, ItemSchema(many=True))
     # @blp.response(200, ResponseSchema)
     def get(self):
@@ -64,6 +69,7 @@ class ItemList(MethodView):
         # return items.values()
         # return {"message": "Items", "data": list(items.values())}
 
+    @jwt_required(fresh=True)
     @blp.arguments(ItemSchema)
     @blp.response(201, ItemSchema)
     def post(self, item_data):
