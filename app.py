@@ -3,6 +3,7 @@ from flask import Flask, jsonify
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from dotenv import load_dotenv
 from db import db
 import models
 from resources.item import blp as ItemBlueprint
@@ -15,7 +16,7 @@ from datetime import timedelta
 
 def create_app(db_url=None):
     app = Flask(__name__)
-
+    load_dotenv()
     app.config["PROPAGATE_EXCEPTIONS"] = True
     app.config["API_TITLE"] = "Stores REST API"
     app.config["API_VERSION"] = "v1"
@@ -27,10 +28,12 @@ def create_app(db_url=None):
         "DATABASE_URL", "sqlite:///data.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
-    migrate = Migrate(app, db)
+    migrate = Migrate(app, db, compare_type=True)
     api = Api(app)
-    app.config["JWT_SECRET_KEY"] = "248955838486057085944623901479057552838"
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+    app.config["JWT_SECRET_KEY"] = os.getenv(
+        "JWT_SECRET_KEY", "248955838486057085944623901479057552838")
+
     jwt = JWTManager(app)
 
     @jwt.token_in_blocklist_loader
