@@ -12,11 +12,13 @@ from resources.tag import blp as TagBlueprint
 from resources.user import blp as UserBlueprint
 from redis_client import redis_client
 from datetime import timedelta
+from rq import Queue
 
 
 def create_app(db_url=None):
     app = Flask(__name__)
     load_dotenv()
+    app.queue = Queue("emails", connection=redis_client)
     app.config["PROPAGATE_EXCEPTIONS"] = True
     app.config["API_TITLE"] = "Stores REST API"
     app.config["API_VERSION"] = "v1"
