@@ -1,2 +1,2 @@
 # flask-first-api
-python3 -m venv .venv
+First REST API with Python Using flask, SQLalchemy and redis
